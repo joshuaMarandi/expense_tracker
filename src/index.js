@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const path = require('path');
 require('dotenv').config();
 
 const expenseRoutes = require('./routes/expenses');
@@ -12,6 +13,9 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 app.use(express.json());
+
+// Serve static files (UI)
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // Initialize database on startup
 async function initializeDatabase() {
@@ -46,7 +50,12 @@ app.get('/health', (req, res) => {
   res.json({ status: 'OK', message: 'Expense Tracker API is running' });
 });
 
-// 404 handler
+// Serve index.html for all other routes (SPA fallback)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
+});
+
+// 404 handler (for API routes)
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
@@ -65,6 +74,7 @@ async function startServer() {
   app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
     console.log(`Health check: http://localhost:${PORT}/health`);
+    console.log(`UI: http://localhost:${PORT}`);
   });
 }
 

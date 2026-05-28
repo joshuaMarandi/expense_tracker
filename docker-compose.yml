@@ -17,19 +17,8 @@ services:
     networks:
       - expense_tracker_network
     restart: unless-stopped
-
-  client:
-    build: ./client
-    container_name: expense_tracker_client
-    ports:
-      - "3000:3000"
-    environment:
-      - REACT_APP_API_URL=http://localhost:5001
-    depends_on:
-      - api
-    networks:
-      - expense_tracker_network
-    restart: unless-stopped
+    volumes:
+      - ./public:/app/public
 
   mysql:
     image: mysql:8.0
