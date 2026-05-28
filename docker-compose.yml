@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    container_name: expense_tracker_api
+    ports:
+      - "5000:5000"
+    environment:
+      - DB_HOST=mysql
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=expense_tracker
+      - NODE_ENV=production
+    depends_on:
+      - mysql
+    networks:
+      - expense_tracker_network
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.0
+    container_name: expense_tracker_db
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=expense_tracker
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - expense_tracker_network
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+
+networks:
+  expense_tracker_network:
+    driver: bridge
