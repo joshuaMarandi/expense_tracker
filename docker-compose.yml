@@ -5,7 +5,7 @@ services:
     build: .
     container_name: expense_tracker_api
     ports:
-      - "5000:5000"
+      - "5001:5000"
     environment:
       - DB_HOST=mysql
       - DB_USER=root
