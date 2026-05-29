@@ -17,29 +17,42 @@ app.use(express.json());
 // Serve static files (UI)
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
-// Initialize database on startup
+// Initialize database on startup with retry logic
 async function initializeDatabase() {
-  try {
-    const connection = await pool.getConnection();
-    
-    // Create expenses table if it doesn't exist
-    const createTableSQL = `
-      CREATE TABLE IF NOT EXISTS expenses (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        amount DECIMAL(10, 2) NOT NULL,
-        category VARCHAR(50) NOT NULL,
-        description VARCHAR(255),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `;
-    
-    await connection.query(createTableSQL);
-    connection.release();
-    console.log('Database initialized successfully');
-  } catch (error) {
-    console.error('Error initializing database:', error.message);
-    process.exit(1);
+  const maxRetries = 10;
+  let retries = 0;
+  
+  while (retries < maxRetries) {
+    try {
+      const connection = await pool.getConnection();
+      
+      // Create expenses table if it doesn't exist
+      const createTableSQL = `
+        CREATE TABLE IF NOT EXISTS expenses (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          amount DECIMAL(10, 2) NOT NULL,
+          category VARCHAR(50) NOT NULL,
+          description VARCHAR(255),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `;
+      
+      await connection.query(createTableSQL);
+      connection.release();
+      console.log('Database initialized successfully');
+      return;
+    } catch (error) {
+      retries++;
+      console.error(`Database connection attempt ${retries}/${maxRetries} failed:`, error.message);
+      if (retries < maxRetries) {
+        console.log(`Retrying in 3 seconds...`);
+        await new Promise(resolve => setTimeout(resolve, 3000));
+      }
+    }
   }
+  
+  console.error('Failed to initialize database after maximum retries');
+  process.exit(1);
 }
 
 // Routes

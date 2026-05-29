@@ -11,7 +11,8 @@ services:
       - DB_NAME=expense_tracker
       - NODE_ENV=production
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     networks:
       - expense_tracker_network
     restart: unless-stopped
@@ -32,6 +33,11 @@ services:
     networks:
       - expense_tracker_network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
 volumes:
   mysql_data:
