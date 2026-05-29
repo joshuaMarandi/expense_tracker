@@ -22,10 +22,6 @@ async function initializeDatabase() {
   try {
     const connection = await pool.getConnection();
     
-    // Create database if it doesn't exist
-    const createDatabaseSQL = `CREATE DATABASE IF NOT EXISTS ${process.env.DB_NAME}`;
-    await connection.query(createDatabaseSQL);
-    
     // Create expenses table if it doesn't exist
     const createTableSQL = `
       CREATE TABLE IF NOT EXISTS expenses (
